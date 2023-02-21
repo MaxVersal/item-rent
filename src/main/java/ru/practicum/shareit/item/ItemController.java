@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
@@ -20,14 +21,14 @@ public class ItemController {
 
     @PostMapping
     public ItemDto postItem(@RequestHeader("X-Sharer-User-Id") Long id,
-                            @RequestBody ItemDto item) {
-        return itemService.postItem(item, id);
+                            @RequestBody Item item) {
+        return itemService.addItem(item, id);
     }
 
     @PatchMapping("/{itemId}")
     public ItemDto patchItem(@PathVariable Long itemId,
                              @RequestHeader("X-Sharer-User-Id") Long ownerId,
-                             @RequestBody ItemDto item) {
+                             @RequestBody Item item) {
         return itemService.updateItem(item,ownerId,itemId);
     }
 

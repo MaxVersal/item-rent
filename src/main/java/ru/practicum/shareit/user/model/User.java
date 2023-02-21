@@ -1,18 +1,23 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import ru.practicum.shareit.user.groups.Create;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 
 /**
  * TODO Sprint add-controllers.
  */
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class User {
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
-    String email;
+    @Email(message = "Некорректная почта", groups = Create.class)
+    @NotNull(groups = Create.class)
+    private String email;
 }

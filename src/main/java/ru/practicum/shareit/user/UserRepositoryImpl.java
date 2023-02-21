@@ -2,7 +2,6 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exceptions.IncorrectEmailException;
 import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.exceptions.WrongDataUpdateException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -68,8 +67,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private static void validateEmail(User user, Long id) {
-        if (user.getEmail() == null || !user.getEmail().contains("@") || user.getEmail().isEmpty())
-            throw new IncorrectEmailException("Неправильная почта");
         for (User user1 : users.values()) {
             if (user1.getEmail().equals(user.getEmail()) && !user1.getId().equals(id)) {
                 throw new WrongDataUpdateException("Пользователь с таким email уже существует");

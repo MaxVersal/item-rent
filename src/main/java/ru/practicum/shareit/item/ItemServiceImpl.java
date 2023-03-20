@@ -49,7 +49,7 @@ public class ItemServiceImpl implements ItemService {
         }
         List<ItemDto> searchResult = new ArrayList<>();
         for (Item item : itemRepository.search(text)) {
-            if (item.getAvailable() == true) {
+            if (item.getAvailable()) {
                 searchResult.add(mapper.toDto(item));
             }
         }
@@ -99,11 +99,6 @@ public class ItemServiceImpl implements ItemService {
         return items.stream()
                 .sorted(Comparator.comparing(ItemDto::getId))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Long getUserIdByItemId(Long id) {
-        return itemRepository.getOwnerId(id);
     }
 
     private static void checkItem(Item item) {

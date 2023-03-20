@@ -15,6 +15,4 @@ public interface ItemService {
     ItemDto getItemById(Long itemId);
 
     List<ItemDto> getItemsByOwnerId(Long id);
-
-    Long getUserIdByItemId(Long id);
 }

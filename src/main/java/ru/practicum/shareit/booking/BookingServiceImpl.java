@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -13,6 +12,7 @@ import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Qualifier("BookingServiceImpl")
 public class BookingServiceImpl implements BookingService {
     @Autowired
     private final BookingRepository bookingRepository;
@@ -35,13 +34,13 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper mapper;
 
-    public BookingDto postBooking(BookingAccept bookingAccept, Long bookerId) {
-        Booking booking = mapper.toEntity(bookingAccept);
-        if (userRepository.findById(bookerId).isPresent()) {
-            booking.setBooker(userRepository.findById(bookerId).get());
-        } else {
+    public BookingDto createBooking(BookingAccept bookingAccept, Long bookerId) {
+        if (!userRepository.findById(bookerId).isPresent()) {
             throw new UserNotFoundException("Не найден пользователь");
         }
+        User booker = userRepository.findById(bookerId).get();
+        Booking booking = mapper.toEntity(bookingAccept);
+        booking.setBooker(booker);
         if (itemRepository.findById(bookingAccept.getItemId()).isPresent()) {
             booking.setItem(itemRepository.findById(bookingAccept.getItemId()).get());
         } else {

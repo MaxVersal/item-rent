@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentsService {
 
     private final ItemMapper mapper;
 
-    public CommentDto postComment(Long itemId, Long requesterId, Comment comment) {
+    public CommentDto createComment(Long itemId, Long requesterId, Comment comment) {
         Optional<User> user = userRepository.findById(requesterId);
         List<Booking> currentBookings = bookingRepository.findBookingsFromUserToItemWithStatus(itemId, requesterId).stream()
                 .filter(booking -> booking.getStatus().equals(Status.APPROVED) && booking.getEnd().isBefore(LocalDateTime.now()))

@@ -31,10 +31,11 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
 
     @Override
-    public ItemDto addItem(Item item, Long ownerId) {
+    public ItemDto addItem(ItemDto itemDto, Long requesterId) {
+        Item item = mapper.toEntity(itemDto);
         checkItem(item);
-        if (userRepository.findById(ownerId).isPresent()) {
-            userRepository.findById(ownerId).get().getItems().add(item);
+        if (userRepository.findById(requesterId).isPresent()) {
+            userRepository.findById(requesterId).get().getItems().add(item);
             return mapper.toDto(itemRepository.save(item));
         } else {
             throw new UserNotFoundException("Не найден владелец");
@@ -57,8 +58,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto updateItem(Item item, Long ownerId, Long itemId) {
-        for (Item itemCurrent : userRepository.findById(ownerId).get().getItems()) {
+    public ItemDto updateItem(ItemDto item, Long requesterId, Long itemId) {
+        for (Item itemCurrent : userRepository.findById(requesterId).get().getItems()) {
             if (itemCurrent.getId().equals(itemId)) {
                 itemRepository
                         .findById(itemId)

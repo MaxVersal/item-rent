@@ -2,11 +2,11 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController("/bookings")
@@ -15,13 +15,12 @@ import java.util.List;
 public class BookingController {
 
     @Autowired
-    @Qualifier("BookingServiceImpl")
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingDto postBooking(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                  @RequestBody BookingAccept bookingAccept) throws Exception {
-        return bookingService.postBooking(bookingAccept, bookerId);
+    public BookingDto createBooking(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                  @RequestBody @Valid BookingAccept bookingAccept) {
+        return bookingService.createBooking(bookingAccept, bookerId);
     }
 
     @PatchMapping("/{bookingId}")

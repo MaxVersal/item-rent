@@ -8,7 +8,6 @@ import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.groups.Create;
 
 import java.util.List;
@@ -27,14 +26,14 @@ public class ItemController {
 
     @PostMapping
     public ItemDto postItem(@RequestHeader("X-Sharer-User-Id") Long id,
-                            @RequestBody Item item) {
+                            @RequestBody @Validated(Create.class) ItemDto item) {
         return itemService.addItem(item, id);
     }
 
     @PatchMapping("/{itemId}")
     public ItemDto patchItem(@PathVariable Long itemId,
                              @RequestHeader("X-Sharer-User-Id") Long ownerId,
-                             @RequestBody Item item) {
+                             @RequestBody ItemDto item) {
         return itemService.updateItem(item, ownerId, itemId);
     }
 
@@ -66,6 +65,6 @@ public class ItemController {
     public CommentDto postComment(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                   @PathVariable Long itemId,
                                   @RequestBody @Validated(Create.class) Comment comment) {
-        return commentsService.postComment(itemId, ownerId, comment);
+        return commentsService.createComment(itemId, ownerId, comment);
     }
 }

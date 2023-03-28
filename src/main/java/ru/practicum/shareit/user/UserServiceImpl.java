@@ -1,49 +1,59 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exceptions.WrongDataUpdateException;
+import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-@Qualifier("UserServiceImpl")
 public class UserServiceImpl implements UserService {
+    @Autowired
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public User postUser(User user) {
-        return userRepository.addUser(user);
+        return userRepository.save(user);
     }
 
     @Override
     public List<User> getUsers() {
-        return userRepository.getUsers();
+        return userRepository.findAll();
     }
 
     @Override
     public User getUser(Long id) {
-        return userRepository.getUserById(id);
+        if (userRepository.findById(id).isPresent()) {
+            return userRepository.findById(id).get();
+        } else {
+            throw new UserNotFoundException("Пользователь с указанным id не найден");
+        }
     }
 
     @Override
     public User patchUser(User user, Long id) {
-        return userRepository.updateUser(user, id);
+        userRepository
+                .findById(id)
+                .ifPresent(user1 -> {
+                    if (user.getName() != null) {
+                        user1.setName(user.getName());
+                    }
+                    if (user.getEmail() != null) {
+                        user1.setEmail(user.getEmail());
+                    }
+                    userRepository.save(user1);
+                });
+        return userRepository.findById(id).get();
     }
 
     @Override
     public String deleteUser(Long id) {
-        return userRepository.deleteUser(id);
-    }
-
-    private void validateEmail(User user, Long id) {
-        for (User user1 : userRepository.getUsers()) {
-            if (user1.getEmail().equals(user.getEmail()) && !user1.getId().equals(id)) {
-                throw new WrongDataUpdateException("Пользователь с таким email уже существует");
-            }
-        }
+        userRepository.deleteById(id);
+        return "Успешное удаление";
     }
 }

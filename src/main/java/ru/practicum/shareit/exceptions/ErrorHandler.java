@@ -79,4 +79,16 @@ public class ErrorHandler {
     public ErrorResponse handleSelfBookingException(SelfBookingException e) {
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleRequestNotFoundException(RequestNotFoundException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleWrongPageDataException(WrongPageDataException e) {
+        return new ErrorResponse(e.getMessage());
+    }
 }

@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.IncorrectItemException;
 import ru.practicum.shareit.exceptions.ItemNotFoundException;
+import ru.practicum.shareit.exceptions.RequestNotFoundException;
 import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.RequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.ArrayList;
@@ -30,9 +33,17 @@ public class ItemServiceImpl implements ItemService {
     @Autowired
     private final UserRepository userRepository;
 
+    @Autowired
+    private final RequestRepository requestRepository;
+
     @Override
     public ItemDto addItem(ItemDto itemDto, Long requesterId) {
         Item item = mapper.toEntity(itemDto);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new RequestNotFoundException("Не найден запрос"));
+            item.setRequest(itemRequest);
+        }
         checkItem(item);
         if (userRepository.findById(requesterId).isPresent()) {
             userRepository.findById(requesterId).get().getItems().add(item);

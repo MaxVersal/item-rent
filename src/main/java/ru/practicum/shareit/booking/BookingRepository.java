@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
@@ -7,6 +9,14 @@ import ru.practicum.shareit.booking.model.Booking;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    @Query(value = "select * from bookings where user_id = ?1",
+            nativeQuery = true)
+    Page<Booking> findPageAllByUserId(Long id, Pageable pageable);
+
+    @Query(value = "select * from bookings where item_id in (" +
+            "select id from items where user_id = ?1)", nativeQuery = true)
+    Page<Booking> findPageBookingsForOwner(Long ownerId, Pageable pageable);
+
     @Query(value = "select * from bookings where user_id = ?1",
             nativeQuery = true)
     List<Booking> findAllByUserId(Long id);
@@ -22,4 +32,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(value = "select * from bookings where item_id = ?1 and user_id = ?2",
             nativeQuery = true)
     List<Booking> findBookingsFromUserToItemWithStatus(Long itemId, Long userId);
+
+
 }

@@ -345,42 +345,6 @@ class BookingServiceImplTest {
         assertEquals(itemDto1.getNextBooking().getStart(), booking2.getStart());
     }
 
-    @Test
-    @DisplayName("should update next booking when an earlier booking is found")
-    void updateNextBookingWhenEarlierBookingFound() {
-        User user = new User();
-        user.setId(1L);
-        Item item = new Item();
-        item.setId(1L);
-        item.setAvailable(true);
-        ItemDto itemDto = new ItemDto();
-        itemDto.setId(1L);
-        itemDto.setAvailable(true);
-        Booking booking1 =
-                new Booking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
-        booking1.setId(1L);
-        booking1.setStatus(Status.APPROVED);
-        booking1.setItem(item);
-        Booking booking2 =
-                new Booking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(3));
-        booking2.setId(2L);
-        booking2.setStatus(Status.APPROVED);
-        booking2.setItem(item);
-        Booking booking3 =
-                new Booking(LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(4));
-        booking3.setId(3L);
-        booking3.setStatus(Status.APPROVED);
-        booking3.setItem(item);
-        booking2.setBooker(user);
-        booking3.setBooker(user);
-        booking1.setBooker(user);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllForItem(anyLong()))
-                .thenReturn(List.of(booking1, booking2, booking3));
-        ItemDto itemDto1 = bookingService.setLastAndNextBooking(itemDto);
-        assertEquals(itemDto1.getNextBooking().getStart(), booking2.getStart());
-    }
 
     @Test
     @DisplayName("should set last and next booking when both are null")

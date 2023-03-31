@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -47,7 +46,7 @@ public class BookingController {
             if (from < 0 || size < 0) {
                 throw new WrongPageDataException("Параметры отображения заданы неверно");
             }
-            return bookingService.findAllBookingsWithParametres(requesterId, PageRequest.of(from / size, size, Sort.by("start_date")));
+            return bookingService.findAllBookingsWithParametres(requesterId, PageRequest.of(from / size, size));
         } else {
             return bookingService.getBookings(requesterId, state);
         }
@@ -63,7 +62,7 @@ public class BookingController {
             if (from < 0 || size < 0) {
                 throw new WrongPageDataException("Параметры отображения заданы неверно");
             }
-            return bookingService.findAllBookingsForOwnerWithParametres(ownerId, PageRequest.of(from / size, size, Sort.by("start_date")));
+            return bookingService.findAllBookingsForOwnerWithParametres(ownerId, PageRequest.of(from / size, size));
         } else {
             return bookingService.getBookingsForOwner(ownerId, state);
         }

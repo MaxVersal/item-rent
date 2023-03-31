@@ -22,7 +22,7 @@ public interface RequestMapper {
     ItemDto toDto(Item item);
 
     @Named("mapId")
-    default Long mapId(ItemRequest itemRequest){
+    default Long mapId(ItemRequest itemRequest) {
         if (itemRequest != null) {
             return itemRequest.getId();
         }

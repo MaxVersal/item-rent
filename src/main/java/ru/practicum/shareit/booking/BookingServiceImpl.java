@@ -218,15 +218,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public List<BookingDto> findAllBookingsWithParametres(Long requesterId, Pageable pageable) {
-        return bookingRepository.findPageAllByUserId(requesterId, pageable).stream()
+        List<BookingDto> current =  bookingRepository.findPageAllByUserId(requesterId, pageable).stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+        return current;
     }
 
     public List<BookingDto> findAllBookingsForOwnerWithParametres(Long ownerId, Pageable pageable) {
-        return bookingRepository.findPageBookingsForOwner(ownerId, pageable).stream()
+        List<BookingDto> current = bookingRepository.findPageBookingsForOwner(ownerId, pageable).stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+        return current;
     }
 
     public void checkBooking(Booking booking) {

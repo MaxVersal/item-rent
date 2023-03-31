@@ -18,4 +18,10 @@ public class BookingAccept {
 
     @NotNull
     LocalDateTime end;
+
+    public BookingAccept(long l, LocalDateTime now, LocalDateTime now1) {
+        this.itemId = l;
+        this.start = now;
+        this.end = now1;
+    }
 }

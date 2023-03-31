@@ -47,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
         checkItem(item);
         if (userRepository.findById(requesterId).isPresent()) {
             userRepository.findById(requesterId).get().getItems().add(item);
+            item.setOwner(userRepository.findById(requesterId).get());
             return mapper.toDto(itemRepository.save(item));
         } else {
             throw new UserNotFoundException("Не найден владелец");
@@ -113,7 +114,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    private static void checkItem(Item item) {
+    static void checkItem(Item item) {
         if (item.getAvailable() == null ||
                 item.getName() == null || item.getName().isBlank() ||
                 item.getDescription() == null) {

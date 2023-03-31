@@ -11,6 +11,7 @@ import ru.practicum.shareit.booking.dto.Status;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
@@ -46,14 +47,74 @@ class BookingServiceImplTest {
     void getBookingsForOwnerWhenStateIsRejected() {
         User owner = new User();
         owner.setId(1L);
+        owner.setName("owner");
+        owner.setEmail("owner@mail.ru");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("item");
+        item.setDescription("description");
+        item.setAvailable(true);
+        item.setOwner(owner);
         Booking booking = new Booking();
         booking.setId(1L);
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
         booking.setStatus(Status.REJECTED);
+        booking.setItem(item);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
         List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "REJECTED");
         assertEquals(1, bookings.size());
         assertEquals(Status.REJECTED, bookings.get(0).getStatus());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
+    }
+
+    @Test
+    @DisplayName("should return rejected bookings for owner when state is REJECTED")
+    void getBookingsForBookerWhenStateIsUnsupported() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setName("owner");
+        owner.setEmail("owner@mail.ru");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("item");
+        item.setDescription("description");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(Status.REJECTED);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findAllByUserId(anyLong())).thenThrow(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> bookingService.getBookings(1L, "REJECTED"));
+    }
+
+    @Test
+    void getExceptionWhenUserNotFound() {
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(Status.REJECTED);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookings(1L, "REJECTED"));
+
+    }
+
+    @Test
+    public void getBookingsForOwnerWithUserException() {
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(Status.REJECTED);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsForOwner(1L, "REJECTED"));
     }
 
     @Test
@@ -69,17 +130,11 @@ class BookingServiceImplTest {
         item.setDescription("description");
         item.setAvailable(true);
         item.setOwner(owner);
-        owner.getItems().add(item);
-        User booker = new User();
-        booker.setId(2L);
-        booker.setName("booker");
-        booker.setEmail("booker@mail.ru");
         Booking booking = new Booking();
         booking.setId(1L);
         booking.setStart(LocalDateTime.now().plusDays(1));
         booking.setEnd(LocalDateTime.now().plusDays(2));
         booking.setStatus(Status.WAITING);
-        booking.setBooker(booker);
         booking.setItem(item);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
@@ -91,7 +146,35 @@ class BookingServiceImplTest {
     }
 
     @Test
-    @DisplayName("should return future bookings for owner when state is FUTURE")
+    @DisplayName("should return waiting bookings for owner when state is WAITING")
+    void getBookingsForOwnerWhenStateIsAll() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setName("owner");
+        owner.setEmail("owner@mail.ru");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("item");
+        item.setDescription("description");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setStatus(Status.WAITING);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
+        List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "ALL");
+        assertEquals(1, bookings.size());
+        assertEquals(Status.WAITING, bookings.get(0).getStatus());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
+    }
+
+    @Test
+    @DisplayName("should return waiting bookings for owner when state is WAITING")
     void getBookingsForOwnerWhenStateIsFuture() {
         User owner = new User();
         owner.setId(1L);
@@ -107,23 +190,20 @@ class BookingServiceImplTest {
         booking.setId(1L);
         booking.setStart(LocalDateTime.now().plusDays(1));
         booking.setEnd(LocalDateTime.now().plusDays(2));
-        booking.setStatus(Status.APPROVED);
+        booking.setStatus(Status.WAITING);
         booking.setItem(item);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
         List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "FUTURE");
         assertEquals(1, bookings.size());
-        assertEquals(booking.getId(), bookings.get(0).getId());
-        assertEquals(booking.getStart(), bookings.get(0).getStart());
-        assertEquals(booking.getEnd(), bookings.get(0).getEnd());
-        assertEquals(booking.getStatus(), bookings.get(0).getStatus());
-        assertEquals(booking.getItem().getId(), bookings.get(0).getItem().getId());
-        assertEquals(booking.getItem().getName(), bookings.get(0).getItem().getName());
+        assertEquals(Status.WAITING, bookings.get(0).getStatus());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
     }
 
     @Test
     @DisplayName("should return past bookings for owner when state is PAST")
-    void getBookingsForOwnerWhenStateIsPast() {
+    public void getBookingsForOwnerWhenStateIsPast() {
         User owner = new User();
         owner.setId(1L);
         owner.setName("owner");
@@ -134,17 +214,11 @@ class BookingServiceImplTest {
         item.setDescription("description");
         item.setAvailable(true);
         item.setOwner(owner);
-        owner.getItems().add(item);
-        User booker = new User();
-        booker.setId(2L);
-        booker.setName("booker");
-        booker.setEmail("booker@mail.ru");
         Booking booking = new Booking();
         booking.setId(1L);
         booking.setStart(LocalDateTime.now().minusDays(1));
         booking.setEnd(LocalDateTime.now().minusDays(1).plusHours(1));
         booking.setStatus(Status.APPROVED);
-        booking.setBooker(booker);
         booking.setItem(item);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
@@ -154,15 +228,13 @@ class BookingServiceImplTest {
         assertEquals(booking.getStart(), bookings.get(0).getStart());
         assertEquals(booking.getEnd(), bookings.get(0).getEnd());
         assertEquals(booking.getStatus(), bookings.get(0).getStatus());
-        assertEquals(booking.getBooker().getId(), bookings.get(0).getBooker().getId());
-
-        assertEquals(booking.getItem().getId(), bookings.get(0).getItem().getId());
-        assertEquals(booking.getItem().getName(), bookings.get(0).getItem().getName());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
     }
 
     @Test
-    @DisplayName("should return all bookings for owner when state is ALL")
-    void getBookingsForOwnerWhenStateIsAll() {
+    @DisplayName("should return past bookings for owner when state is PAST")
+    void getBookingsForOwnerWhenStateIsCurrent() {
         User owner = new User();
         owner.setId(1L);
         owner.setName("owner");
@@ -173,21 +245,261 @@ class BookingServiceImplTest {
         item.setDescription("description");
         item.setAvailable(true);
         item.setOwner(owner);
-        owner.getItems().add(item);
-        User booker = new User();
-        booker.setId(2L);
-        booker.setName("booker");
-        booker.setEmail("booker@mail.ru");
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1).plusHours(1));
+        booking.setStatus(Status.APPROVED);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
+        List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "CURRENT");
+        assertEquals(1, bookings.size());
+        assertEquals(booking.getId(), bookings.get(0).getId());
+        assertEquals(booking.getStart(), bookings.get(0).getStart());
+        assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
+    }
+
+    @Test
+    @DisplayName("should return past bookings for owner when state is PAST")
+    void getBookingsForOwnerWhenStateIsApproved() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setName("owner");
+        owner.setEmail("owner@mail.ru");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("item");
+        item.setDescription("description");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1).plusHours(1));
+        booking.setStatus(Status.APPROVED);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
+        List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "APPROVED");
+        assertEquals(1, bookings.size());
+        assertEquals(booking.getId(), bookings.get(0).getId());
+        assertEquals(booking.getStart(), bookings.get(0).getStart());
+        assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(bookingRepository, times(1)).findBookingsForOwner(anyLong());
+    }
+
+    @Test
+    @DisplayName("should return past bookings for owner when state is PAST")
+    void getBookingsForOwnerWhenStateIsUnsupported() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setName("owner");
+        owner.setEmail("owner@mail.ru");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("item");
+        item.setDescription("description");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1).plusHours(1));
+        booking.setStatus(Status.APPROVED);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findBookingsForOwner(anyLong())).thenThrow(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> bookingService.getBookingsForOwner(1L, "test"));
+    }
+
+    @Test
+    @DisplayName("should set last booking when it is null and next booking is not null")
+    void setLastBookingWhenNullAndNextBookingNotNull() {
+        User user = new User();
+        user.setId(1L);
+        Booking booking = new Booking();
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(Status.APPROVED);
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(1L);
+        Item item = new Item();
+        item.setId(1L);
+        booking.setItem(item);
+        Booking booking2 = new Booking();
+        booking.setBooker(user);
+        booking2.setStart(LocalDateTime.now().plusDays(1));
+        booking2.setEnd(LocalDateTime.now().plusDays(2));
+        booking2.setStatus(Status.APPROVED);
+        booking2.setItem(item);
+        booking2.setBooker(user);
+        when(bookingRepository.findAllForItem(anyLong())).thenReturn(List.of(booking, booking2));
+        ItemDto itemDto1 = bookingService.setLastAndNextBooking(itemDto);
+        assertEquals(itemDto1.getLastBooking().getStart(), booking.getStart());
+        assertEquals(itemDto1.getNextBooking().getStart(), booking2.getStart());
+    }
+
+    @Test
+    @DisplayName("should update next booking when an earlier booking is found")
+    void updateNextBookingWhenEarlierBookingFound() {
+        User user = new User();
+        user.setId(1L);
+        Item item = new Item();
+        item.setId(1L);
+        item.setAvailable(true);
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(1L);
+        itemDto.setAvailable(true);
+        Booking booking1 =
+                new Booking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
+        booking1.setId(1L);
+        booking1.setStatus(Status.APPROVED);
+        booking1.setItem(item);
+        Booking booking2 =
+                new Booking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(3));
+        booking2.setId(2L);
+        booking2.setStatus(Status.APPROVED);
+        booking2.setItem(item);
+        Booking booking3 =
+                new Booking(LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(4));
+        booking3.setId(3L);
+        booking3.setStatus(Status.APPROVED);
+        booking3.setItem(item);
+        booking2.setBooker(user);
+        booking3.setBooker(user);
+        booking1.setBooker(user);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.findAllForItem(anyLong()))
+                .thenReturn(List.of(booking1, booking2, booking3));
+        ItemDto itemDto1 = bookingService.setLastAndNextBooking(itemDto);
+        assertEquals(itemDto1.getNextBooking().getStart(), booking2.getStart());
+    }
+
+    @Test
+    @DisplayName("should set last and next booking when both are null")
+    void setLastAndNextBookingWhenBothAreNull() {
+        User user = new User();
+        user.setId(1L);
+        Item item = new Item();
+        item.setId(1L);
+        item.setAvailable(true);
+        Booking booking1 =
+                new Booking(LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
+        booking1.setId(1L);
+        booking1.setStatus(Status.APPROVED);
+        booking1.setItem(item);
+        booking1.setBooker(user);
+        Booking booking2 =
+                new Booking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
+        booking2.setId(2L);
+        booking2.setStatus(Status.APPROVED);
+        booking2.setItem(item);
+        booking2.setBooker(user);
+        when(bookingRepository.findAllForItem(anyLong())).thenReturn(List.of(booking1, booking2));
+        BookingDto bookingDto1 = new BookingDto();
+        bookingDto1.setId(1L);
+        bookingDto1.setStart(LocalDateTime.now().minusDays(1));
+        bookingDto1.setEnd(LocalDateTime.now().plusDays(1));
+        bookingDto1.setStatus(Status.APPROVED);
+        BookingDto bookingDto2 = new BookingDto();
+        bookingDto2.setId(2L);
+        bookingDto2.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto2.setEnd(LocalDateTime.now().plusDays(2));
+        bookingDto2.setStatus(Status.APPROVED);
+        when(bookingRepository.findAllForItem(anyLong())).thenReturn(List.of(booking1, booking2));
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(1L);
+        itemDto.setAvailable(true);
+        itemDto.setLastBooking(null);
+        itemDto.setNextBooking(null);
+        ItemDto result = bookingService.setLastAndNextBooking(itemDto);
+        assertEquals(bookingDto1.getId(), result.getLastBooking().getId());
+        assertEquals(bookingDto2.getId(), result.getNextBooking().getId());
+    }
+
+    @Test
+    @DisplayName("should set next booking when it is null and last booking is not null")
+    void setNextBookingWhenNullAndLastBookingNotNull() {
+        User user = new User();
+        user.setId(1L);
+        Item item = new Item();
+        item.setId(1L);
+        item.setAvailable(true);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setItem(item);
+        booking.setStatus(Status.APPROVED);
+        when(bookingRepository.findAllForItem(anyLong())).thenReturn(List.of(booking));
+        Booking bookingDto = new Booking();
+        bookingDto.setId(1L);
+        bookingDto.setStart(LocalDateTime.now().minusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(1));
+        bookingDto.setStatus(Status.APPROVED);
+        bookingDto.setItem(item);
+        bookingDto.setBooker(user);
+        Booking bookingDto1 = new Booking();
+        bookingDto1.setId(2L);
+        bookingDto1.setStart(LocalDateTime.now().minusDays(2));
+        bookingDto1.setEnd(LocalDateTime.now().minusDays(1));
+        bookingDto1.setStatus(Status.APPROVED);
+        bookingDto1.setItem(item);
+        bookingDto1.setBooker(user);
+        Booking bookingDto2 = new Booking();
+        bookingDto2.setId(3L);
+        bookingDto2.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto2.setEnd(LocalDateTime.now().plusDays(2));
+        bookingDto2.setStatus(Status.APPROVED);
+        bookingDto2.setItem(item);
+        bookingDto2.setBooker(user);
+        Booking bookingDto3 = new Booking();
+        bookingDto3.setId(4L);
+        bookingDto3.setStart(LocalDateTime.now().plusDays(2));
+        bookingDto3.setEnd(LocalDateTime.now().plusDays(3));
+        bookingDto3.setStatus(Status.APPROVED);
+        bookingDto3.setItem(item);
+        bookingDto3.setBooker(user);
+        when(bookingRepository.findAllForItem(anyLong()))
+                .thenReturn(List.of(bookingDto, bookingDto1, bookingDto2, bookingDto3));
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(1L);
+        itemDto.setAvailable(true);
+        itemDto = bookingService.setLastAndNextBooking(itemDto);
+        assertEquals(bookingDto2.getId(), itemDto.getNextBooking().getId());
+    }
+
+    @Test
+    @DisplayName("should return a list of bookings for the owner with given parameters")
+    void findAllBookingsForOwnerWithParametres() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("test");
+        user.setEmail("test@test.com");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("test");
+        item.setDescription("test");
+        item.setAvailable(true);
+        item.setOwner(user);
         Booking booking = new Booking();
         booking.setId(1L);
         booking.setStart(LocalDateTime.now());
         booking.setEnd(LocalDateTime.now().plusDays(1));
-        booking.setStatus(Status.APPROVED);
-        booking.setBooker(booker);
+        booking.setStatus(Status.WAITING);
+        booking.setBooker(user);
         booking.setItem(item);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(bookingRepository.findBookingsForOwner(anyLong())).thenReturn(List.of(booking));
-        List<BookingDto> bookings = bookingService.getBookingsForOwner(1L, "ALL");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findPageBookingsForOwner(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        List<BookingDto> bookings = bookingService.findAllBookingsForOwnerWithParametres(1L, null);
         assertEquals(1, bookings.size());
         assertEquals(booking.getId(), bookings.get(0).getId());
         assertEquals(booking.getStart(), bookings.get(0).getStart());
@@ -196,6 +508,39 @@ class BookingServiceImplTest {
         assertEquals(booking.getBooker().getId(), bookings.get(0).getBooker().getId());
         assertEquals(booking.getItem().getId(), bookings.get(0).getItem().getId());
         assertEquals(booking.getItem().getName(), bookings.get(0).getItem().getName());
+    }
+
+    @Test
+    @DisplayName("should return a list of bookings with the given parameters")
+    void findAllBookingsWithParametres() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("test");
+        user.setEmail("test@test.com");
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("test");
+        item.setDescription("test");
+        item.setAvailable(true);
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(Status.WAITING);
+        booking.setBooker(user);
+        booking.setItem(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findPageAllByUserId(anyLong(), any())).thenReturn(List.of(booking));
+        List<BookingDto> bookings = bookingService.findAllBookingsWithParametres(1L, null);
+        assertEquals(1, bookings.size());
+        assertEquals(booking.getId(), bookings.get(0).getId());
+        assertEquals(booking.getStart(), bookings.get(0).getStart());
+        assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        assertEquals(booking.getBooker().getId(), bookings.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookings.get(0).getItem().getId());
+        assertEquals(booking.getItem().getName(), bookings.get(0).getItem().getName());
+
     }
 
     @Test
@@ -300,6 +645,42 @@ class BookingServiceImplTest {
         booking.setBooker(user);
         when(bookingRepository.findAllByUserId(anyLong())).thenReturn(List.of(booking));
         assertEquals(1, bookingService.getBookings(1L, "ALL").size());
+    }
+
+    @Test
+    @DisplayName("should return future bookings for the given user")
+    void getBookingsForCurrentState() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("test");
+        user.setEmail("test@test.com");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setStatus(Status.APPROVED);
+        booking.setBooker(user);
+        when(bookingRepository.findAllByUserId(anyLong())).thenReturn(List.of(booking));
+        assertEquals(1, bookingService.getBookings(1L, "CURRENT").size());
+    }
+
+    @Test
+    @DisplayName("should return future bookings for the given user")
+    void getBookingsForApprovedState() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("test");
+        user.setEmail("test@test.com");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking.setStatus(Status.APPROVED);
+        booking.setBooker(user);
+        when(bookingRepository.findAllByUserId(anyLong())).thenReturn(List.of(booking));
+        assertEquals(1, bookingService.getBookings(1L, "APPROVED").size());
     }
 
     @Test

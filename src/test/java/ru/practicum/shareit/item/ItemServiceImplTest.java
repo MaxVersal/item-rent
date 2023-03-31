@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.practicum.shareit.exceptions.IncorrectItemException;
 import ru.practicum.shareit.exceptions.ItemNotFoundException;
 import ru.practicum.shareit.exceptions.RequestNotFoundException;
+import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.RequestRepository;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -34,6 +37,67 @@ class ItemServiceImplTest {
 
     @Autowired
     private ItemServiceImpl itemService;
+
+    @Test
+    @DisplayName("should throw IncorrectItemException when the item is not valid")
+    void addItemWhenItemIsNotValidThenThrowIncorrectItemException() {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setName("");
+        itemDto.setDescription("");
+        itemDto.setAvailable(null);
+        assertThrows(IncorrectItemException.class, () -> itemService.addItem(itemDto, 1L));
+    }
+
+    @Test
+    @DisplayName("should throw RequestNotFoundException when the requestId is not found")
+    void addItemWhenRequestIdNotFoundThenThrowRequestNotFoundException() {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setRequestId(1L);
+        when(requestRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RequestNotFoundException.class, () -> itemService.addItem(itemDto, 1L));
+    }
+
+    @Test
+    @DisplayName("should throw UserNotFoundException when the requesterId is not found")
+    void addItemWhenRequesterIdNotFoundThenThrowUserNotFoundException() {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setName("Книга");
+        itemDto.setDescription("Книга по программированию");
+        itemDto.setAvailable(true);
+        itemDto.setRequestId(1L);
+        Long requesterId = 1L;
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
+        when(requestRepository.findById(any())).thenReturn(Optional.of(new ItemRequest()));
+        assertThrows(UserNotFoundException.class, () -> itemService.addItem(itemDto, requesterId));
+    }
+
+    @Test
+    @DisplayName("should add the item when the requesterId is valid and the item is valid")
+    void addItemWhenRequesterIdIsValidAndItemIsValid() {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setName("Книга");
+        itemDto.setDescription("Книга по программированию");
+        itemDto.setAvailable(true);
+        itemDto.setRequestId(1L);
+        Item item = new Item();
+        item.setName("Книга");
+        item.setDescription("Книга по программированию");
+        item.setAvailable(true);
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(1L);
+        itemRequest.setDescription("Запрос на книгу");
+        User user = new User();
+        user.setId(1L);
+        user.setName("Иван");
+        user.setEmail("ivan@mail.ru");
+        when(requestRepository.findById(1L)).thenReturn(Optional.of(itemRequest));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(itemRepository.save(any())).thenReturn(item);
+        ItemDto result = itemService.addItem(itemDto, 1L);
+        assertEquals(itemDto.getName(), result.getName());
+        assertEquals(itemDto.getDescription(), result.getDescription());
+        assertEquals(itemDto.getAvailable(), result.getAvailable());
+    }
 
     @Test
     void checkItemWhenMissingRequiredFieldsThenThrowException() {
@@ -241,22 +305,5 @@ class ItemServiceImplTest {
         assertEquals(item.getName(), result.get(0).getName());
         assertEquals(item.getDescription(), result.get(0).getDescription());
         assertEquals(item.getAvailable(), result.get(0).getAvailable());
-    }
-
-    @Test
-    void addItemWhenRequestIdNotFoundThenThrowRequestNotFoundException() {
-        ItemDto itemDto = new ItemDto();
-        itemDto.setRequestId(1L);
-        when(requestRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(RequestNotFoundException.class, () -> itemService.addItem(itemDto, 1L));
-    }
-
-    @Test
-    void addItemWhenItemIsNotValidThenThrowIncorrectItemException() {
-        ItemDto itemDto = new ItemDto();
-        itemDto.setName("");
-        itemDto.setDescription("");
-        itemDto.setAvailable(null);
-        assertThrows(IncorrectItemException.class, () -> itemService.addItem(itemDto, 1L));
     }
 }

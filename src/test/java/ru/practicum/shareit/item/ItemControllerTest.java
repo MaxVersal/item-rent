@@ -5,15 +5,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.booking.dto.BookingForItem;
 import ru.practicum.shareit.exceptions.IncorrectItemException;
 import ru.practicum.shareit.exceptions.ItemNotFoundException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -169,5 +174,49 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[0].available").value(item.getAvailable()))
                 .andExpect(jsonPath("$[0].description").value(item.getDescription()))
                 .andExpect(jsonPath("$[0].name").value(item.getName()));
+    }
+
+    @Test
+    @DisplayName("should return items by user id")
+    public void shouldReturnItemByUserId() throws Exception {
+        ItemDto item = new ItemDto();
+        item.setId(1L);
+        item.setName("test");
+        item.setAvailable(false);
+        item.setDescription("test");
+        item.setNextBooking(new BookingForItem(1L, 1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2)));
+
+        when(itemService.getItemsByOwnerId(any())).thenReturn(List.of(item));
+        when(bookingService.setLastAndNextBooking(item)).thenReturn(item);
+        mockMvc.perform(get("/items")
+                        .header("X-Sharer-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(item.getId()))
+                .andExpect(jsonPath("$[0].available").value(item.getAvailable()))
+                .andExpect(jsonPath("$[0].description").value(item.getDescription()))
+                .andExpect(jsonPath("$[0].name").value(item.getName()));
+
+    }
+
+    @Test
+    @DisplayName("should post comment")
+    public void shouldPostCommet() throws Exception {
+        when(commentsService.createComment(any(), anyLong(), any())).thenReturn(new CommentDto(1L,
+                "test",
+                LocalDateTime.of(2024, 12, 12, 5, 5),
+                "test"));
+
+        mockMvc.perform(post("/items/1/comment")
+                        .header("X-Sharer-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\" : \"test\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.authorName").value("test"))
+                .andExpect(jsonPath("$.text").value("test"))
+                .andExpect(jsonPath("$.id").value(1L));
     }
 }

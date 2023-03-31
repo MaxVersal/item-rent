@@ -47,11 +47,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     public List<ItemRequestDto> getAllRequests() {
-        List<ItemRequestDto> allRequests = requestRepository.findAll().stream()
-                .sorted(Comparator.comparing(r -> r.getCreated()))
+        return requestRepository.findAll().stream()
+                .sorted(Comparator.comparing(ItemRequest::getCreated))
                 .map(requestMapper::toDto)
                 .collect(Collectors.toList());
-        return allRequests;
     }
 
     public List<ItemRequestDto> gellAllRequestsWithParams(Pageable pageable, Long requesterId) {

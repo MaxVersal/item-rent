@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,6 +27,23 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @Test
+    @DisplayName("should create a new user with valid input")
+    void postUserWithValidInput() throws Exception {
+        User user1 = new User(1L, "User1", "user1@example.com", Collections.emptySet());
+
+        when(userService.postUser(any())).thenReturn(user1);
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\" : \"User1\", \"email\" : \"user1@example.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").value(user1.getId()))
+                .andExpect(jsonPath("$.name").value(user1.getName()))
+                .andExpect(jsonPath("$.email").value(user1.getEmail()));
+    }
 
     @Test
     public void getUsersShouldReturnUsersList() throws Exception {
@@ -98,5 +116,31 @@ public class UserControllerTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).deleteUser(userId);
+    }
+
+    @Test
+    @DisplayName("should return user by id")
+    public void shouldReturnUserById() throws Exception {
+        User user = new User(1L, "User1", "user1@example.com", Collections.emptySet());
+
+        when(userService.getUser(anyLong())).thenReturn(user);
+
+        mockMvc.perform(get("/users/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(user.getId()))
+                .andExpect(jsonPath("$.name").value(user.getName()))
+                .andExpect(jsonPath("$.email").value(user.getEmail()));
+    }
+
+    @Test
+    @DisplayName("should update user")
+    public void shouldUpdateUser() throws Exception {
+        User user = new User(1L, "User1", "updated@example.com", Collections.emptySet());
+        when(userService.patchUser(any(), anyLong())).thenReturn(user);
+
+        mockMvc.perform(patch("/users")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError());
     }
 }

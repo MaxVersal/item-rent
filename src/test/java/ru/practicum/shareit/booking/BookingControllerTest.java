@@ -84,7 +84,7 @@ class BookingControllerTest {
     @Test
     @DisplayName("should return booking with id")
     public void shouldReturnBooking() throws Exception {
-        when(bookingService.getBooking(anyLong(), anyLong())).thenReturn(bookingDto);
+        when(bookingService.getBookingById(anyLong(), anyLong())).thenReturn(bookingDto);
 
         mockMvc.perform(get("/bookings/1")
                         .header("X-Sharer-User-Id", 1)

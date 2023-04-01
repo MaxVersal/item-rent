@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.IncorrectItemException;
 import ru.practicum.shareit.exceptions.ItemNotFoundException;
@@ -56,12 +57,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItem(String text, Long ownerId) {
+    public List<ItemDto> searchItem(String text, Long ownerId, Integer from, Integer size) {
         if (text.isBlank()) {
             return Collections.emptyList(); //постман при пустом тексте просит вернуть пустую коллекцию...
         }
         List<ItemDto> searchResult = new ArrayList<>();
-        for (Item item : itemRepository.search(text)) {
+        for (Item item : itemRepository.search(text, PageRequest.of(from / size, size))) {
             if (item.getAvailable()) {
                 searchResult.add(mapper.toDto(item));
             }

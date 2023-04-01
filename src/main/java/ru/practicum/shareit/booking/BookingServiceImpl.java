@@ -78,7 +78,7 @@ public class BookingServiceImpl implements BookingService {
         return mapper.toDto(bookingRepository.save(booking));
     }
 
-    public BookingDto getBooking(Long bookingId, Long requesterId) {
+    public BookingDto getBookingById(Long bookingId, Long requesterId) {
         Booking booking = bookingRepository.findById(bookingId).get();
         if (booking.getBooker().getId().equals(requesterId)
                 || (userRepository.findById(requesterId).get().getItems().contains(booking.getItem()))) {

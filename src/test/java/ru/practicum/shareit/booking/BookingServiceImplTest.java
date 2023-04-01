@@ -707,7 +707,7 @@ class BookingServiceImplTest {
         booking.setStatus(Status.WAITING);
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(requester));
-        assertThrows(NoSuchElementException.class, () -> bookingService.getBooking(1L, 2L));
+        assertThrows(NoSuchElementException.class, () -> bookingService.getBookingById(1L, 2L));
     }
 
     @Test
@@ -723,7 +723,7 @@ class BookingServiceImplTest {
         booking.setItem(item);
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(booker));
-        BookingDto bookingDto = bookingService.getBooking(1L, 1L);
+        BookingDto bookingDto = bookingService.getBookingById(1L, 1L);
         assertEquals(bookingDto.getId(), booking.getId());
         assertEquals(bookingDto.getStart(), booking.getStart());
         assertEquals(bookingDto.getEnd(), booking.getEnd());
@@ -749,7 +749,7 @@ class BookingServiceImplTest {
         booking.setStatus(Status.WAITING);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
-        BookingDto bookingDto = bookingService.getBooking(1L, 1L);
+        BookingDto bookingDto = bookingService.getBookingById(1L, 1L);
         assertEquals(bookingDto.getId(), booking.getId());
         assertEquals(bookingDto.getStart(), booking.getStart());
         assertEquals(bookingDto.getEnd(), booking.getEnd());

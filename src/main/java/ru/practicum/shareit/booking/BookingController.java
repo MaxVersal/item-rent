@@ -33,12 +33,12 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public BookingDto getBooking(@PathVariable Long bookingId, @RequestHeader("X-Sharer-User-Id") Long requesterId) {
-        return bookingService.getBooking(bookingId, requesterId);
+    public BookingDto getBookingById(@PathVariable Long bookingId, @RequestHeader("X-Sharer-User-Id") Long requesterId) {
+        return bookingService.getBookingById(bookingId, requesterId);
     }
 
     @GetMapping
-    public List<BookingDto> getBooking(@RequestHeader("X-Sharer-User-Id") Long requesterId,
+    public List<BookingDto> getBookings(@RequestHeader("X-Sharer-User-Id") Long requesterId,
                                        @RequestParam(name = "state", defaultValue = "ALL") String state,
                                        @RequestParam(required = false) Integer from,
                                        @RequestParam(required = false) Integer size) {

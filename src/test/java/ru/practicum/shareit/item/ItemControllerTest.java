@@ -161,12 +161,14 @@ public class ItemControllerTest {
         item.setAvailable(false);
         item.setDescription("test");
 
-        when(itemService.searchItem("te", 1L)).thenReturn(List.of(item));
+        when(itemService.searchItem("te", 1L, 0, 99)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/items/search")
                         .contentType("application/json")
                         .param("text", "te")
-                        .header("X-Sharer-User-Id", 1))
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "99"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$", hasSize(1)))

@@ -275,7 +275,7 @@ class ItemServiceImplTest {
 
     @Test
     void searchItemWhenTextIsBlank() {
-        assertTrue(itemService.searchItem("", 1L).isEmpty());
+        assertTrue(itemService.searchItem("", 1L, 0, 20).isEmpty());
     }
 
     @Test
@@ -284,8 +284,8 @@ class ItemServiceImplTest {
         item.setAvailable(false);
         item.setName("test");
         item.setDescription("test");
-        when(itemRepository.search("test")).thenReturn(List.of(item));
-        List<ItemDto> result = itemService.searchItem("test", 1L);
+        when(itemRepository.search(any(), any())).thenReturn(List.of(item));
+        List<ItemDto> result = itemService.searchItem("test", 1L, 0, 20);
         assertTrue(result.isEmpty());
     }
 
@@ -298,8 +298,8 @@ class ItemServiceImplTest {
         item.setName("test");
         item.setDescription("test");
         item.setAvailable(true);
-        when(itemRepository.search(text)).thenReturn(List.of(item));
-        List<ItemDto> result = itemService.searchItem(text, ownerId);
+        when(itemRepository.search(any(), any())).thenReturn(List.of(item));
+        List<ItemDto> result = itemService.searchItem(text, ownerId, 0, 20);
         assertEquals(1, result.size());
         assertEquals(item.getId(), result.get(0).getId());
         assertEquals(item.getName(), result.get(0).getName());

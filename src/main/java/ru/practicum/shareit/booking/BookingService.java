@@ -12,7 +12,7 @@ public interface BookingService {
 
     BookingDto patchBooking(Long requesterId, Boolean approved, Long bookingId);
 
-    BookingDto getBooking(Long bookingId, Long requesterId);
+    BookingDto getBookingById(Long bookingId, Long requesterId);
 
     List<BookingDto> getBookings(Long requesterId, String state);
 

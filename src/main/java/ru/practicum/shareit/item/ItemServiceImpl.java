@@ -2,13 +2,17 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.IncorrectItemException;
 import ru.practicum.shareit.exceptions.ItemNotFoundException;
+import ru.practicum.shareit.exceptions.RequestNotFoundException;
 import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.RequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.ArrayList;
@@ -30,12 +34,21 @@ public class ItemServiceImpl implements ItemService {
     @Autowired
     private final UserRepository userRepository;
 
+    @Autowired
+    private final RequestRepository requestRepository;
+
     @Override
     public ItemDto addItem(ItemDto itemDto, Long requesterId) {
         Item item = mapper.toEntity(itemDto);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new RequestNotFoundException("Не найден запрос"));
+            item.setRequest(itemRequest);
+        }
         checkItem(item);
         if (userRepository.findById(requesterId).isPresent()) {
             userRepository.findById(requesterId).get().getItems().add(item);
+            item.setOwner(userRepository.findById(requesterId).get());
             return mapper.toDto(itemRepository.save(item));
         } else {
             throw new UserNotFoundException("Не найден владелец");
@@ -44,12 +57,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItem(String text, Long ownerId) {
+    public List<ItemDto> searchItem(String text, Long ownerId, Integer from, Integer size) {
         if (text.isBlank()) {
             return Collections.emptyList(); //постман при пустом тексте просит вернуть пустую коллекцию...
         }
         List<ItemDto> searchResult = new ArrayList<>();
-        for (Item item : itemRepository.search(text)) {
+        for (Item item : itemRepository.search(text, PageRequest.of(from / size, size))) {
             if (item.getAvailable()) {
                 searchResult.add(mapper.toDto(item));
             }
@@ -102,7 +115,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    private static void checkItem(Item item) {
+    static void checkItem(Item item) {
         if (item.getAvailable() == null ||
                 item.getName() == null || item.getName().isBlank() ||
                 item.getDescription() == null) {

@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -77,7 +78,7 @@ public class BookingServiceImpl implements BookingService {
         return mapper.toDto(bookingRepository.save(booking));
     }
 
-    public BookingDto getBookings(Long bookingId, Long requesterId) {
+    public BookingDto getBookingById(Long bookingId, Long requesterId) {
         Booking booking = bookingRepository.findById(bookingId).get();
         if (booking.getBooker().getId().equals(requesterId)
                 || (userRepository.findById(requesterId).get().getItems().contains(booking.getItem()))) {
@@ -214,6 +215,20 @@ public class BookingServiceImpl implements BookingService {
             }
         }
         return itemDto;
+    }
+
+    public List<BookingDto> findAllBookingsWithParametres(Long requesterId, Pageable pageable) {
+        List<BookingDto> current =  bookingRepository.findPageAllByUserId(requesterId, pageable).stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+        return current;
+    }
+
+    public List<BookingDto> findAllBookingsForOwnerWithParametres(Long ownerId, Pageable pageable) {
+        List<BookingDto> current = bookingRepository.findPageBookingsForOwner(ownerId, pageable).stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+        return current;
     }
 
     public void checkBooking(Booking booking) {

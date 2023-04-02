@@ -25,6 +25,8 @@ public class ItemDto {
 
     Long id;
 
+    Long requestId;
+
     private BookingForItem nextBooking;
 
     private BookingForItem lastBooking;

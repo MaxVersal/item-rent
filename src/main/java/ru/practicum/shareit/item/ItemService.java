@@ -7,7 +7,7 @@ import java.util.List;
 public interface ItemService {
     ItemDto addItem(ItemDto itemDto, Long requesterId);
 
-    List<ItemDto> searchItem(String text, Long ownerId);
+    List<ItemDto> searchItem(String text, Long ownerId, Integer from, Integer size);
 
     ItemDto updateItem(ItemDto item, Long requesterId, Long itemId);
 

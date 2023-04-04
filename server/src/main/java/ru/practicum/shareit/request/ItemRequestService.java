@@ -13,7 +13,5 @@ public interface ItemRequestService {
 
     ItemRequestDto getRequestWithItems(Long requesterId, Long requestId);
 
-    List<ItemRequestDto> getAllRequests();
-
     List<ItemRequestDto> gellAllRequestsWithParams(Pageable pageable, Long requesteId);
 }

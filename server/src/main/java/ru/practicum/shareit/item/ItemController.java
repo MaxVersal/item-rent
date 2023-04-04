@@ -49,8 +49,8 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam(name = "text") String text,
                                     @RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                    @RequestParam(defaultValue = "0", value = "from") Integer from,
-                                    @RequestParam(defaultValue = "20", value = "size") Integer size) {
+                                    @RequestParam(value = "from") Integer from,
+                                    @RequestParam(value = "size") Integer size) {
         return itemService.searchItem(text, ownerId, from, size);
     }
 
@@ -66,7 +66,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public CommentDto postComment(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                                   @PathVariable Long itemId,
-                                  @RequestBody  Comment comment) {
+                                  @RequestBody Comment comment) {
         return commentsService.createComment(itemId, ownerId, comment);
     }
 }

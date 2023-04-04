@@ -10,7 +10,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.user.groups.Create;
 
-import javax.validation.constraints.Positive;
 import java.util.List;
 
 @RestController

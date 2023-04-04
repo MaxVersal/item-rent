@@ -6,9 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.exceptions.WrongPageDataException;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController("/bookings")

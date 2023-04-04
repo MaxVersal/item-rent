@@ -2,6 +2,8 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
@@ -52,8 +54,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String deleteUser(Long id) {
+    public ResponseEntity<String> deleteUser(Long id) {
         userRepository.deleteById(id);
-        return "Успешное удаление";
+        return new ResponseEntity<String>(HttpStatus.OK);
     }
 }

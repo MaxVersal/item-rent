@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.http.ResponseEntity;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
@@ -13,5 +14,5 @@ public interface UserService {
 
     User patchUser(User user, Long id);
 
-    String deleteUser(Long id);
+    ResponseEntity<String> deleteUser(Long id);
 }

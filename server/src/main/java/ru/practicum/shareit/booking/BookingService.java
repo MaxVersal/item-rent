@@ -14,13 +14,9 @@ public interface BookingService {
 
     BookingDto getBookingById(Long bookingId, Long requesterId);
 
-    List<BookingDto> getBookings(Long requesterId, String state);
-
-    List<BookingDto> getBookingsForOwner(Long ownerId, String state);
+    List<BookingDto> getBookingsForOwner(Long ownerId, String state, Pageable pageable);
 
     ItemDto setLastAndNextBooking(ItemDto itemDto);
 
-    List<BookingDto> findAllBookingsWithParametres(Long requesterId, Pageable pageable);
-
-    List<BookingDto> findAllBookingsForOwnerWithParametres(Long ownerId, Pageable pageable);
+    List<BookingDto> findAllBookingsWithParametres(Long requesterId, Pageable pageable, String state);
 }

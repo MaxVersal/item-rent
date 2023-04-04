@@ -45,8 +45,9 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> searchItem(@RequestParam(name = "text") String text,
                                              @RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                             @PositiveOrZero @RequestParam(required = false, defaultValue = "0") Integer from,
-                                             @Positive @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                             @PositiveOrZero @RequestParam(value = "from",defaultValue = "0") Integer from,
+                                             @Positive @RequestParam(value = "size", defaultValue = "20") Integer size) {
+        log.info("Получили запрос search с параметрами from:{}, size:{}, text:{}", from, size, text);
         return itemClient.getItemsBySearch(ownerId, text, from, size);
     }
 

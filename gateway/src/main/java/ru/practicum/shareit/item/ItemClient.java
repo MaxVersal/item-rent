@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -14,8 +15,9 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class ItemClient extends BaseClient {
-    private static final String API_PREFIX = "/bookings";
+    private static final String API_PREFIX = "/items";
 
     @Autowired
     public ItemClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
@@ -45,7 +47,8 @@ public class ItemClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("/search?text={text}?from={from}?size={size}", userId, params);
+        log.info("GET /items/search?text={}&from={}&size={}", text, from, size);
+        return get("/search?text={text}&from={from}&size={size}", userId, params);
     }
 
     public ResponseEntity<Object> getItems(long userId) {

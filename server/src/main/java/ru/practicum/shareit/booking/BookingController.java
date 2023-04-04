@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.dto.BookingAccept;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.exceptions.WrongPageDataException;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController("/bookings")
@@ -38,18 +39,10 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getBookings(@RequestHeader("X-Sharer-User-Id") Long requesterId,
-                                       @RequestParam(name = "state", defaultValue = "ALL") String state,
-                                       @RequestParam(required = false) Integer from,
-                                       @RequestParam(required = false) Integer size) {
-        if (from != null && size != null) {
-            if (from < 0 || size < 0) {
-                throw new WrongPageDataException("Параметры отображения заданы неверно");
-            }
-            return bookingService.findAllBookingsWithParametres(requesterId, PageRequest.of(from / size, size));
-        } else {
-            return bookingService.getBookings(requesterId, state);
-        }
-
+                                        @RequestParam(name = "state", defaultValue = "ALL") String state,
+                                        @RequestParam(required = false) Integer from,
+                                        @RequestParam(required = false) Integer size) {
+        return bookingService.findAllBookingsWithParametres(requesterId, PageRequest.of(from / size, size), state);
     }
 
     @GetMapping("/owner")
@@ -57,13 +50,6 @@ public class BookingController {
                                                @RequestParam(name = "state", defaultValue = "ALL") String state,
                                                @RequestParam(required = false) Integer from,
                                                @RequestParam(required = false) Integer size) {
-        if (from != null && size != null) {
-            if (from < 0 || size < 0) {
-                throw new WrongPageDataException("Параметры отображения заданы неверно");
-            }
-            return bookingService.findAllBookingsForOwnerWithParametres(ownerId, PageRequest.of(from / size, size));
-        } else {
-            return bookingService.getBookingsForOwner(ownerId, state);
-        }
+        return bookingService.getBookingsForOwner(ownerId, state, PageRequest.of(from / size, size));
     }
 }

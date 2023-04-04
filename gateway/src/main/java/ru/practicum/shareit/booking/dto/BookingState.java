@@ -1,7 +1,9 @@
 package ru.practicum.shareit.booking.dto;
 
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import ru.practicum.shareit.exceptions.BookingStatusException;
 
+@Slf4j
 public enum BookingState {
 	// Все
 	ALL,
@@ -16,12 +18,12 @@ public enum BookingState {
 	// Ожидающие подтверждения
 	WAITING;
 
-	public static Optional<BookingState> from(String stringState) {
-		for (BookingState state : values()) {
-			if (state.name().equalsIgnoreCase(stringState)) {
-				return Optional.of(state);
-			}
+	public static BookingState from(String stringState) {
+		try {
+			return BookingState.valueOf(stringState.toUpperCase());
+		} catch (IllegalArgumentException exception) {
+			log.info("словили исключение в дто классе");
+			throw new BookingStatusException("Unknown state: " + stringState);
 		}
-		return Optional.empty();
 	}
 }

@@ -32,12 +32,13 @@ public class UserController {
         return userClient.getUser(userId);
     }
 
-    @PatchMapping("/userId")
+    @PatchMapping("/{userId}")
     public ResponseEntity<Object> patchUser(@RequestBody UserDto userDto, @PathVariable long userId) {
+        log.info("получен патч запрос с userId: {}", userId);
         return userClient.patchUser(userId, userDto);
     }
 
-    @DeleteMapping("/userId")
+    @DeleteMapping("/{userId}")
     public ResponseEntity<Object> deleteUser(@PathVariable long userId) {
         return userClient.deleteUser(userId);
     }

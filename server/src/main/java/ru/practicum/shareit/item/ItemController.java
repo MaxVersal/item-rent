@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.user.groups.Create;
 
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @RestController
@@ -49,8 +50,8 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam(name = "text") String text,
                                     @RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                    @RequestParam Integer from,
-                                    @RequestParam Integer size) {
+                                    @RequestParam(defaultValue = "0", value = "from") Integer from,
+                                    @RequestParam(defaultValue = "20", value = "size") Integer size) {
         return itemService.searchItem(text, ownerId, from, size);
     }
 
